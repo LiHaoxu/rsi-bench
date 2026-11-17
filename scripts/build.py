@@ -21,6 +21,79 @@ def read(name):
     return json.loads((ROOT / name).read_text(encoding="utf-8"))
 
 
+def read_connections(data):
+    path = ROOT / 'data/connections.json'
+    if not path.exists():
+        return {'papers': [], 'links': [], 'protocol_links': []}
+    connections = read('data/connections.json')
+    papers = {paper['id']: paper for paper in connections['papers']}
+    resource_ids = {row['id'] for key in ('datasets', 'tools') for row in data[key]}
+    protocol_ids = {row['id'] for row in data['protocols']}
+    if len(papers) != len(connections['papers']):
+        raise ValueError('Duplicate paper in connections.json')
+    seen = set()
+    for row in connections['links']:
+        identity = (row['paper_id'], row['resource_id'], row['relation'])
+        if identity in seen:
+            raise ValueError(f'Duplicate paper/resource connection: {identity}')
+        seen.add(identity)
+        if row['paper_id'] not in papers or row['resource_id'] not in resource_ids:
+            raise ValueError(f'Unknown connection reference: {identity}')
+        if row['relation'] not in {'uses', 'implements', 'suggested'}:
+            raise ValueError(f'Unknown connection relation: {row["relation"]}')
+        if not row.get('note'):
+            raise ValueError(f'Missing connection explanation: {identity}')
+        if row['relation'] in {'uses', 'implements'} and (not row.get('sources') or not row.get('locator')):
+            raise ValueError(f'Verified connection needs sources and locator: {identity}')
+        for url in row.get('sources', []):
+            link(url, 'source')
+    seen = set()
+    for row in connections['protocol_links']:
+        identity = (row['paper_id'], row['protocol_id'])
+        if identity in seen or row['paper_id'] not in papers or row['protocol_id'] not in protocol_ids or not row.get('note'):
+            raise ValueError(f'Invalid suggested protocol connection: {identity}')
+        seen.add(identity)
+    return connections
+
+
+def paper_link(paper, config):
+    url = config['survey_url'].split('#')[0] + '#' + paper['id']
+    label = f'{paper["short"]} · {paper["venue"]} {paper["year"]}'
+    return f'<a href="{e(url)}" title="{e(paper["title"])}">{e(label)} →</a>'
+
+
+def resource_connections(resource_id, connections, config):
+    papers = {paper['id']: paper for paper in connections['papers']}
+    rows = [row for row in connections['links'] if row['resource_id'] == resource_id]
+    html = '<div class="paper-connections"><h4>关联 Survey 论文</h4>'
+    if not rows:
+        return html + '<p class="connection-note">尚未添加关联记录；这不表示相关论文没有使用该资源。</p></div>'
+    for relation, label in [('uses', '论文实际使用'), ('implements', '实现收录／作者实现'), ('suggested', '本站建议资源')]:
+        selected = [row for row in rows if row['relation'] == relation]
+        if not selected:
+            continue
+        html += f'<div class="connection-group"><span class="connection-label {relation}">{label}</span><ul>'
+        for row in selected:
+            html += '<li>' + paper_link(papers[row['paper_id']], config) + f'<p class="connection-note">{e(row["note"])}</p>'
+            if row.get('sources'):
+                sources = ''.join(link(url, f'来源 {i + 1}') for i, url in enumerate(row['sources']))
+                html += f'<details class="connection-evidence"><summary>关联依据</summary><p>{e(row.get("locator", ""))}</p><div class="sources">{sources}</div></details>'
+            html += '</li>'
+        html += '</ul></div>'
+    return html + '</div>'
+
+
+def protocol_connections(protocol_id, connections, config):
+    papers = {paper['id']: paper for paper in connections['papers']}
+    rows = [row for row in connections['protocol_links'] if row['protocol_id'] == protocol_id]
+    if not rows:
+        return ''
+    html = '<div class="paper-connections"><h4>建议关联阅读</h4><p class="connection-note">本站按研究问题选择的阅读入口，不表示这些论文采用了本站协议。</p><ul class="protocol-papers">'
+    for row in rows:
+        html += '<li>' + paper_link(papers[row['paper_id']], config) + f'<p class="connection-note">{e(row["note"])}</p></li>'
+    return html + '</ul></div>'
+
+
 def link(url, label, extra=""):
     if not url:
         return ""
@@ -58,6 +131,7 @@ def shell(title, body, current, config):
         ("index.html?type=tool#catalog", "工具与模拟器", f"{len(counts['tools']):02d}"),
         ("protocols.html", "评测协议", f"{len(counts['protocols']):02d}"),
         ("results.html", "结果与提交", "↗"),
+        ("changelog.html", "更新记录", "↗"),
     ]
     links = []
     for url, label, count in nav:
@@ -73,11 +147,14 @@ def shell(title, body, current, config):
 <aside class="sidebar"><a class="brand" href="index.html">RSI Atlas<span class="mark">RECOMMENDER SYSTEM EVOLUTION</span></a>
 <div class="switch"><a href="{e(config['survey_url'])}">SURVEY</a><a class="active" href="{e(config['bench_url'])}" aria-current="true">BENCH</a></div>
 <nav aria-label="Bench 导航"><div class="nav-label">Evaluation resources</div>{nav_html}</nav>
+<nav aria-label="参与维护"><div class="nav-label">Contribute</div><a href="{e(config['repo_url'])}/issues/new?template=resource.yml" target="_blank" rel="noopener noreferrer">推荐资源 <small>↗</small></a><a href="{e(config['repo_url'])}/issues/new?template=correction.yml" target="_blank" rel="noopener noreferrer">报告错误 <small>↗</small></a></nav>
 <div class="bottom"><span>数据、协议与可复现证据</span><span>文献核验 · {ASOF}</span><a href="{e(config['repo_url'])}" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div></aside>
 <main class="main" id="main"><div class="topline"><a class="mobile-brand" href="index.html">RSI Atlas</a><span class="edition">RESEARCH COLLECTION / BENCH</span>
 <nav aria-label="站点入口"><a href="{e(config['survey_url'])}">Survey</a><a href="index.html">Bench</a><a href="{e(config['repo_url'])}" target="_blank" rel="noopener noreferrer">GitHub ↗</a></nav></div>
+<nav class="mobile-pages" aria-label="Bench 页面"><a href="index.html#catalog">资源目录</a><a href="protocols.html">评测协议</a><a href="results.html">结果与提交</a><a href="changelog.html">更新记录</a></nav>
 {body}
-<footer class="footer"><div>RSI Atlas · 推荐系统自进化<br>维护者 {e(config['owner'])} · 核验截至 {ASOF}</div><div><a href="{e(config['survey_url'])}">阅读 Survey ↗</a><br>资源索引与建议协议；不代替原论文与正式实验报告。</div></footer>
+<footer class="footer"><div>RSI Atlas · 推荐系统自进化<br>维护者 {e(config['owner'])} · 核验截至 {ASOF}</div><div class="footer-links"><a href="{e(config['survey_url'])}">阅读 Survey ↗</a><a href="changelog.html">更新记录</a><a href="{e(config['repo_url'])}/issues/new?template=resource.yml" target="_blank" rel="noopener noreferrer">推荐资源 ↗</a><a href="{e(config['repo_url'])}/issues/new?template=correction.yml" target="_blank" rel="noopener noreferrer">报告错误 ↗</a><span>资源索引与建议协议；不代替原论文与正式实验报告。</span></div></footer>
+<div class="toast" role="status" aria-live="polite" data-toast hidden></div>
 </main></div></body></html>'''
 
 
@@ -89,7 +166,7 @@ def section_head(number, title, description=""):
     return f'<div class="section-head"><div><div class="eyebrow">{e(number)}</div><h2>{e(title)}</h2></div><p>{e(description)}</p></div>'
 
 
-def resource(row, is_dataset):
+def resource(row, is_dataset, connections, config):
     kind = row.get("kind", "框架与工具")
     category = "real" if is_dataset else ("simulation" if row["id"] in {"recsim", "recsim-ng", "agent4rec", "easyrl4rec"} else "framework")
     label = "数据集" if is_dataset else "工具"
@@ -99,12 +176,15 @@ def resource(row, is_dataset):
     sources = "".join(link(url, f"核验来源 {i + 1}") for i, url in enumerate(row["sources"]))
     return f'''<article class="resource" id="{e(row['id'])}" data-entry data-type="{'dataset' if is_dataset else 'tool'}" data-category="{category}">
 <div class="entry-top"><span class="badge venue">{label}</span><span>{e(kind)}</span></div>
-<h3>{e(row['name'])}</h3><p>{e(row['description'])}</p><div class="tags">{tags}</div>{usage}
+<h3><a href="#{e(row['id'])}" class="resource-title">{e(row['name'])}</a></h3><p>{e(row['description'])}</p><div class="tags">{tags}</div>{usage}
 <details><summary>适用边界与来源</summary><p class="limitation">{e(row['limitation'])}</p>{license_note}<div class="sources">{sources}</div><p class="source-note">核验日期：{e(row.get('verified', ASOF))}</p></details>
-<div class="sources">{link(row['url'], '官方入口')}{link(row.get('paper'), '论文')}</div></article>'''
+{resource_connections(row['id'], connections, config)}
+<div class="sources resource-actions">{link(row['url'], '官方入口')}{link(row.get('paper'), '资源论文')}<button type="button" data-share="{e(row['id'])}" aria-label="复制 {e(row['name'])} 的资源链接">复制资源链接</button></div>
+<div class="share-fallback" data-share-fallback hidden><label>请选择并复制此链接<input readonly type="text" aria-label="资源永久链接"></label></div></article>'''
 
 
-def index(data, results, config):
+def index(data, results, config, connections=None):
+    connections = connections if connections is not None else read_connections(data)
     actions = '<div class="hero-actions"><a class="btn primary" href="#catalog">浏览评测资源 ↓</a><a class="btn" href="protocols.html">选择评测协议 ↗</a><span class="status">轻量资源索引 · 持续维护</span></div>'
     body = hero("From literature to evidence", "推荐系统自进化<br><em>评测与复现</em>", "从一次离线提升，到可验证的持续改进。把数据、反馈、更新预算和评测口径放在一起，为自训练、持续学习、策略更新与智能体反思建立可复现的起点。", actions)
     stats = [(len(data['datasets']), '公开数据资源'), (len(data['tools']), '框架与模拟器'), (len(data['protocols']), '建议评测协议'), (len(results), '已收录测量记录')]
@@ -113,7 +193,8 @@ def index(data, results, config):
     body += '''<div class="loop"><div><span class="n">01</span><b>固定起点</b><p>明确初始模型、数据版本、候选池与切分。</p></div><div><span class="n">02</span><b>记录更新</b><p>逐轮保存反馈来源、模型变化与计算预算。</p></div><div><span class="n">03</span><b>设置对照</b><p>控制额外训练、调用次数和教师信号。</p></div><div><span class="n">04</span><b>保留证据</b><p>公开配置、逐 seed 结果与完整实验日志。</p></div></div></section>'''
     body += '<section id="catalog">' + section_head('02 / RESOURCE CATALOG', '数据集、工具与模拟器', '资源可用于搭建实验；收录不代表已在本站完成复现。')
     body += '''<form class="filters" data-filters role="search" aria-label="筛选评测资源"><div class="controls"><label>搜索资源<input name="q" type="search" placeholder="名称、反馈类型、应用场景…" autocomplete="off"></label><label>资源类型<select name="type"><option value="">全部资源</option><option value="dataset">数据集</option><option value="tool">工具与模拟器</option></select></label><label>资源性质<select name="category"><option value="">全部性质</option><option value="real">真实数据</option><option value="framework">训练与评估框架</option><option value="simulation">交互与模拟工具</option></select></label></div><div class="toolbar"><button type="button" data-reset>重置筛选</button><button type="button" data-expand>展开来源</button><button type="button" data-collapse>收起来源</button><span class="count-output" data-count aria-live="polite"></span></div></form><noscript>JavaScript 未启用，以下完整目录仍可阅读；搜索和筛选不可用。</noscript>'''
-    body += '<div class="resource-grid" style="margin-top:22px">' + ''.join(resource(row, True) for row in data['datasets']) + ''.join(resource(row, False) for row in data['tools']) + '</div><p class="empty" data-empty hidden>没有符合条件的资源。请减少关键词或重置筛选。</p></section>'
+    body += '<p class="connection-key"><span class="connection-label uses">论文实际使用</span> 记录论文或其实现实际采用的资源，具体版本见说明；<span class="connection-label implements">实现收录／作者实现</span> 指已核验的方法实现，不表示原论文使用该工具；<span class="connection-label suggested">本站建议资源</span> 是可选复现起点，不表示论文实际采用。</p>'
+    body += '<div class="resource-grid">' + ''.join(resource(row, True, connections, config) for row in data['datasets']) + ''.join(resource(row, False, connections, config) for row in data['tools']) + '</div><p class="empty" data-empty hidden>没有符合条件的资源。请减少关键词或重置筛选。</p></section>'
     result_status = f'当前收录 {len(results)} 条测量记录，配置与证据见结果页。' if results else '当前尚未收录测量记录。'
     body += f'<section class="scope"><h2>如何理解 Bench</h2><p>这是推荐系统自进化的轻量评测资源入口：整理资源、说明建议协议、规范结果提交。{result_status}本仓库不包含训练执行器。</p><p>真实日志、模拟用户反馈、论文中的作者报告与本站收录的测量记录属于不同证据。跨数据版本、切分、候选池或预算的分数不直接合并排名。</p><a href="results.html">查看结果状态与提交要求 →</a></section>'
     return shell('评测与复现', body, 'index.html', config)
@@ -123,14 +204,15 @@ def list_html(items):
     return '<ul>' + ''.join(f'<li>{e(x)}</li>' for x in items) + '</ul>'
 
 
-def protocols(data, results, config):
+def protocols(data, results, config, connections=None):
+    connections = connections if connections is not None else read_connections(data)
     body = hero('Evaluation protocols', '让每一轮改进<br><em>都有可比较的证据</em>', '以下四套协议是本站整理的实验设计建议。先选择研究问题，再固定数据、基线、指标和预算；执行前应在仓库中冻结具体配置。')
     body += '<section><div class="protocol-tabs">' + ''.join(f'<a href="#{e(p["id"])}">{e(p["title"])}</a>' for p in data['protocols']) + '</div></section>'
     for i, protocol in enumerate(data['protocols'], 1):
         result_count = sum(record['protocol'] == protocol['id'] for record in results)
         result_status = f'已收录 {result_count} 条测量记录，详见结果页。' if result_count else '尚未收录此协议的测量记录。'
         rows = [('数据设置', e(protocol['data'])), ('必备对照', list_html(protocol['baselines'])), ('报告指标', list_html(protocol['metrics'])), ('控制变量', list_html(protocol['controls']))]
-        body += f'<section class="protocol" id="{e(protocol["id"])}"><div class="eyebrow">Protocol {i:02d} / {e(protocol["id"])}</div><h3>{e(protocol["title"])}</h3><p>{e(protocol["question"])}</p><dl>' + ''.join(f'<dt>{label}</dt><dd>{value}</dd>' for label, value in rows) + f'</dl><div class="callout">主要风险：{e(protocol["risk"])}</div><p class="source-note">本站建议协议；{result_status}</p></section>'
+        body += f'<section class="protocol" id="{e(protocol["id"])}"><div class="eyebrow">Protocol {i:02d} / {e(protocol["id"])}</div><h3>{e(protocol["title"])}</h3><p>{e(protocol["question"])}</p><dl>' + ''.join(f'<dt>{label}</dt><dd>{value}</dd>' for label, value in rows) + f'</dl><div class="callout">主要风险：{e(protocol["risk"])}</div>{protocol_connections(protocol["id"], connections, config)}<p class="source-note">本站建议协议；{result_status}</p></section>'
     body += '<section class="scope"><h2>协议如何落地</h2><p>使用固定的数据版本与文件校验值，记录所有随机种子和环境依赖。公开结果时同时提交初始轮与更新轮、逐 seed 数值、总成本及证据链接。协议中的具体窗口、轮数、候选数和预算由实验者预先确定并披露。</p><a href="results.html">查看结果提交格式 →</a></section>'
     return shell('评测协议', body, 'protocols.html', config)
 
@@ -157,6 +239,7 @@ def results_page(results, config):
 def main():
     data, config, results = read('data/resources.json'), read('config.json'), read('data/results.json')
     check_catalog(data)
+    connections = read_connections(data)
     if not isinstance(results, list):
         raise ValueError('data/results.json must be an array')
     result_ids = set()
@@ -170,7 +253,10 @@ def main():
     for name in ('styles.css', 'app.js'):
         if not (ROOT / 'assets' / name).is_file():
             raise ValueError(f'Missing assets/{name}')
-    pages = {'index.html': index(data, results, config), 'protocols.html': protocols(data, results, config), 'results.html': results_page(results, config)}
+    if (ROOT / 'scripts/maintenance.py').is_file():
+        from maintenance import write_changelog
+        write_changelog(ROOT, config)
+    pages = {'index.html': index(data, results, config, connections), 'protocols.html': protocols(data, results, config, connections), 'results.html': results_page(results, config)}
     for filename, html in pages.items():
         (ROOT / filename).write_text(html, encoding='utf-8')
     if '--stage' in sys.argv:
@@ -180,6 +266,8 @@ def main():
         stage.mkdir(exist_ok=True)
         for filename in pages:
             shutil.copy2(ROOT / filename, stage / filename)
+        if (ROOT / 'changelog.html').exists():
+            shutil.copy2(ROOT / 'changelog.html', stage / 'changelog.html')
         for directory in ('assets', 'data'):
             shutil.copytree(ROOT / directory, stage / directory, dirs_exist_ok=True)
         (stage / '.nojekyll').touch()
