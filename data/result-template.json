@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "status": "unmeasured",
+  "id": "",
+  "method": "",
+  "repository": "",
+  "commit": "",
+  "protocol": "offline-self-training",
+  "measured_at": "",
+  "dataset": {
+    "name": "",
+    "version": "",
+    "split": "",
+    "candidate_protocol": ""
+  },
+  "seeds": [42, 2024, 2025],
+  "rounds": [
+    {
+      "round": 0,
+      "metrics": {
+        "NDCG@10": {
+          "mean": null,
+          "std": null,
+          "per_seed": [{"seed": 42, "value": null}, {"seed": 2024, "value": null}, {"seed": 2025, "value": null}]
+        }
+      }
+    },
+    {
+      "round": 1,
+      "metrics": {
+        "NDCG@10": {
+          "mean": null,
+          "std": null,
+          "per_seed": [{"seed": 42, "value": null}, {"seed": 2024, "value": null}, {"seed": 2025, "value": null}]
+        }
+      }
+    }
+  ],
+  "cost": {
+    "training_seconds": null,
+    "generation_seconds": null,
+    "total_gpu_hours": null,
+    "llm_tokens": null
+  },
+  "evidence_artifact_url": "",
+  "notes": "未运行的填写模板。null 表示未知，不是 0 分；真实测量后填写各字段并将 status 改为 measured。cost 为所有列出的 seed 与轮次的总成本；std 使用样本标准差。"
+}

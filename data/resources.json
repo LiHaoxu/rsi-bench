@@ -1,0 +1,388 @@
+{
+  "datasets": [
+    {
+      "id": "movielens-32m",
+      "name": "MovieLens 32M",
+      "kind": "显式评分 / 时间序列",
+      "description": "GroupLens 发布的固定版本电影评分与标签数据，可作为自训练、增量更新和推荐表征的基础测试集。",
+      "feedback": "带时间戳的用户评分与标签；没有完整曝光日志。",
+      "suitable": [
+        "离线自训练",
+        "时间切分",
+        "持续学习"
+      ],
+      "limitation": "评分是用户主动产生的观测；未评分不能直接当作负反馈。离线改善不能直接推断线上长期收益。复现旧论文时必须使用该论文指定的 MovieLens 版本。",
+      "url": "https://grouplens.org/datasets/movielens/32m/",
+      "paper": "",
+      "license_note": "按 ml-32m README 中的使用条款获取和使用；本站不重新分发数据。",
+      "sources": [
+        "https://files.grouplens.org/datasets/movielens/ml-32m-README.html",
+        "https://grouplens.org/datasets/movielens/"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "amazon-2023",
+      "name": "Amazon Reviews 2023",
+      "kind": "电商评论 / 商品文本",
+      "description": "McAuley Lab 的评论、评分与商品元数据集合；含时间戳和多个品类，提供预处理与标准切分入口。",
+      "feedback": "评分、评论及 helpfulness 信息；不是商品曝光后完整的点击或购买反馈。",
+      "suitable": [
+        "合成数据",
+        "序列自训练",
+        "语言模型推荐",
+        "跨品类验证"
+      ],
+      "limitation": "须冻结品类、版本、过滤规则与切分。生成模型不能读取未来评论或测试商品的未来统计；2014、2018、2023 数据上的成绩不可直接比较。",
+      "url": "https://amazon-reviews-2023.github.io/",
+      "paper": "https://arxiv.org/abs/2403.03952",
+      "license_note": "从作者发布页或官方 Hugging Face 数据卡获取；具体使用范围按发布方条款核对。",
+      "sources": [
+        "https://amazon-reviews-2023.github.io/",
+        "https://huggingface.co/datasets/McAuley-Lab/Amazon-Reviews-2023"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "amazon-2018",
+      "name": "Amazon Review Data 2018",
+      "kind": "历史基准 / 电商评论",
+      "description": "保留用于既有工作的复现实验：包含评论、评分、商品元数据、按品类数据与 5-core 子集。",
+      "feedback": "评论评分和时间戳；部分元数据含商品关联。",
+      "suitable": [
+        "经典工作复现",
+        "自训练对照",
+        "蒸馏对照"
+      ],
+      "limitation": "同名 Beauty 或 Sports 子集在不同年份、不同预处理下并非同一个基准；不要把该版本替换为 2023 后仍声称复现原论文。",
+      "url": "https://nijianmo.github.io/amazon/index.html",
+      "paper": "",
+      "license_note": "官方页面区分小型直链子集与需要表单申请的完整文件；采用对应入口及其条款。",
+      "sources": [
+        "https://nijianmo.github.io/amazon/index.html"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "kuairec",
+      "name": "KuaiRec",
+      "kind": "短视频 / 近全观测反馈",
+      "description": "快手真实推荐日志，提供稀疏大矩阵和近全观测小矩阵，以及用户和视频辅助信息。",
+      "feedback": "观看时长、观看比例等用户—视频交互信号。",
+      "suitable": [
+        "交互推荐",
+        "反馈偏差分析",
+        "模拟环境评测"
+      ],
+      "limitation": "近全观测的是小矩阵，仍有缺失；重复推荐、退出机制与状态转移需要另行定义。静态矩阵本身不证明真实长期交互效果。对应资源论文发表于 CIKM 2022。",
+      "url": "https://kuairec.com/",
+      "paper": "https://doi.org/10.1145/3511808.3557220",
+      "license_note": "从官方页面所列 Zenodo 发布获取，固定版本和校验值，并核对该发布的条款。",
+      "sources": [
+        "https://kuairec.com/",
+        "https://github.com/chongminggao/KuaiRec"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "kuairand",
+      "name": "KuaiRand",
+      "kind": "短视频 / 随机曝光",
+      "description": "在正常推荐流中插入随机曝光的视频日志，提供多种用户反馈、时间戳和 Pure、1K、27K 等版本。",
+      "feedback": "点击、点赞、观看时长等多种信号，同时区分正常策略与随机曝光日志。",
+      "suitable": [
+        "曝光偏差",
+        "序列推荐",
+        "策略评估",
+        "持续学习"
+      ],
+      "limitation": "随机曝光只覆盖规定的候选池；不能把全体常规日志视为随机样本。需明确版本、候选池和反馈定义。对应资源论文发表于 CIKM 2022。",
+      "url": "https://kuairand.com/",
+      "paper": "https://doi.org/10.1145/3511808.3557624",
+      "license_note": "使用官方链接到的 Zenodo 版本，并保留下载版本与校验值；具体条款以该发布为准。",
+      "sources": [
+        "https://kuairand.com/",
+        "https://github.com/chongminggao/KuaiRand"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "mind",
+      "name": "MIND",
+      "kind": "新闻 / 曝光点击",
+      "description": "Microsoft News 的匿名新闻推荐日志，含新闻内容、用户历史及曝光候选中的点击与未点击项；另有 small 子集。",
+      "feedback": "曝光列表、点击标记与此前的点击历史。",
+      "suitable": [
+        "内容推荐",
+        "时间敏感更新",
+        "重排序",
+        "语言模型推荐"
+      ],
+      "limitation": "按官方划分和候选集合报告结果；曝光中的未点击与全库负采样属于不同评测。历史日志不能模拟改变推荐策略后的真实用户反应。",
+      "url": "https://msnews.github.io/",
+      "paper": "https://aclanthology.org/2020.acl-main.331/",
+      "license_note": "官方发布页要求接受 Microsoft Research License Terms，用于研究。",
+      "sources": [
+        "https://msnews.github.io/",
+        "https://msnews.github.io/assets/doc/ACL2020_MIND.pdf"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "open-bandit",
+      "name": "Open Bandit Dataset",
+      "kind": "电商 / 已知倾向概率",
+      "description": "ZOZOTOWN 的真实 bandit 日志，包含不同采集策略、展示位置、点击和已知动作倾向概率，配套 Open Bandit Pipeline。",
+      "feedback": "曝光动作、位置、点击奖励与 propensity score。",
+      "suitable": [
+        "离策略评估",
+        "上下文 bandit",
+        "策略更新对照"
+      ],
+      "limitation": "它主要支持单步 bandit 的离策略评估，不等同于具有长期状态变化的强化学习；检查目标策略支持集与重要性权重方差。",
+      "url": "https://research.zozo.com/data.html",
+      "paper": "https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/33e75ff09dd601bbe69f351039152189-Abstract-round2.html",
+      "license_note": "完整数据从 ZOZO Research 官方入口获取；勿将配套代码的 Apache-2.0 自动解释为数据的使用许可。",
+      "sources": [
+        "https://research.zozo.com/data.html",
+        "https://github.com/st-tech/zr-obp"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "redial",
+      "name": "ReDial",
+      "kind": "电影 / 自然语言交互",
+      "description": "人工收集的电影推荐对话，标注被提到的电影以及是否推荐、看过和喜欢等信息，可用于偏好更新与推荐对话分析。",
+      "feedback": "自然语言表达的偏好，以及电影级 suggested、seen、liked 标注。",
+      "suitable": [
+        "对话推荐",
+        "反馈记忆",
+        "智能体评估"
+      ],
+      "limitation": "固定人工对话并非可交互在线环境；LLM 生成用户回应属于额外模拟假设。测试集必须隔离，不能参与反思记忆或策略选择。",
+      "url": "https://redialdata.github.io/website/",
+      "paper": "https://papers.nips.cc/paper_files/paper/2018/hash/800de15c79c8d840f4e78d3af937d4d4-Abstract.html",
+      "license_note": "官方发布为 CC BY 4.0。",
+      "sources": [
+        "https://redialdata.github.io/website/",
+        "https://redialdata.github.io/website/datasheet"
+      ],
+      "verified": "2026-11-17"
+    }
+  ],
+  "tools": [
+    {
+      "id": "recbole",
+      "name": "RecBole",
+      "description": "统一的数据处理、模型训练和推荐评测工具，覆盖通用、序列和上下文推荐等方法。",
+      "use": "建立固定 backbone、固定切分和固定候选集合的离线对照；作为自训练或持续学习的基础训练层。",
+      "limitation": "库内模型并不自动具有自进化闭环；需要自行固定多轮更新、数据生成和预算控制。工具版本与评测配置必须随结果归档。",
+      "url": "https://github.com/RUCAIBox/RecBole",
+      "paper": "https://doi.org/10.1145/3539618.3591889",
+      "sources": [
+        "https://github.com/RUCAIBox/RecBole"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "easyrl4rec",
+      "name": "EasyRL4Rec",
+      "description": "面向强化学习推荐的实验库，提供基于公共数据的环境、状态建模、策略学习和长期结果评测。",
+      "use": "研究交互策略更新；明确选择离线日志训练或用户模型反馈训练，并统一是否重复推荐和退出机制。",
+      "limitation": "用户模型补全与退出规则会影响结论；模拟收益应与真实日志证据分开。FreeB、NX_0、NX_X 等评测设置不可混报。",
+      "url": "https://github.com/chongminggao/EasyRL4Rec",
+      "paper": "https://doi.org/10.1145/3626772.3657868",
+      "sources": [
+        "https://github.com/chongminggao/EasyRL4Rec",
+        "https://arxiv.org/abs/2402.15164"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "open-bandit-pipeline",
+      "name": "Open Bandit Pipeline",
+      "description": "提供 bandit 数据处理、策略学习与离策略评估估计量的 Python 工具。",
+      "use": "在具有倾向概率的日志上比较 IPS、SNIPS、DR 等估计，并检查策略改进是否依赖特定估计器。",
+      "limitation": "离策略估计仍依赖支持集、奖励模型和权重方差条件；单步估计不能替代长期交互验证。",
+      "url": "https://github.com/st-tech/zr-obp",
+      "paper": "https://datasets-benchmarks-proceedings.neurips.cc/paper/2021/hash/33e75ff09dd601bbe69f351039152189-Abstract-round2.html",
+      "sources": [
+        "https://github.com/st-tech/zr-obp"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "recsim",
+      "name": "RecSim",
+      "description": "Google Research 的可配置推荐模拟器，可显式设定用户状态、偏好变化和反馈生成机制。",
+      "use": "在受控假设下研究探索、反馈循环和长期奖励；适合机制实验与旧工作复现。",
+      "limitation": "官方仓库已于 2026-04-19 归档；依赖较旧。模拟结果只在所设用户行为模型下成立，应锁定环境并披露假设。",
+      "url": "https://github.com/google-research/recsim",
+      "paper": "https://arxiv.org/abs/1909.04847",
+      "sources": [
+        "https://github.com/google-research/recsim"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "recsim-ng",
+      "name": "RecSim NG",
+      "description": "基于概率建模的推荐生态模拟平台，支持多主体、潜在状态和不确定性建模。",
+      "use": "分析用户、内容提供者和平台的共同变化，评估反馈循环在不同环境参数下是否稳定。",
+      "limitation": "官方仓库已于 2026-04-19 归档；环境建模需要额外工作，不能把生态模拟结论直接当作真实系统结果。",
+      "url": "https://github.com/google-research/recsim_ng",
+      "paper": "https://arxiv.org/abs/2103.08057",
+      "sources": [
+        "https://github.com/google-research/recsim_ng"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "recommenders",
+      "name": "Recommenders",
+      "description": "提供推荐模型、数据准备、评估指标和示例工作流的开源工具集合。",
+      "use": "核对常用离线指标与基线，搭建新闻或协同过滤任务的复现起点。",
+      "limitation": "示例 notebook 的数据切分和采样设置并不天然一致；需统一配置后才能与自进化方法公平比较。",
+      "url": "https://github.com/recommenders-team/recommenders",
+      "paper": "",
+      "sources": [
+        "https://github.com/recommenders-team/recommenders"
+      ],
+      "verified": "2026-11-17"
+    },
+    {
+      "id": "agent4rec",
+      "name": "Agent4Rec",
+      "description": "SIGIR 2024 工作的官方实现，用具有用户档案、记忆和动作模块的 LLM 智能体模拟推荐环境中的用户。",
+      "use": "构建自然语言反馈和用户行为模拟对照，检查推荐策略在不同代理用户中的表现。",
+      "limitation": "代理反馈不是实际用户反馈；需校准行为分布、记录 LLM 版本和调用成本，并用不同模拟器检验结论。官方实现以 MovieLens-1M 初始化，不能默认为 MovieLens 32M。",
+      "url": "https://github.com/LehengTHU/Agent4Rec",
+      "paper": "https://doi.org/10.1145/3626772.3657844",
+      "sources": [
+        "https://github.com/LehengTHU/Agent4Rec",
+        "https://sigir-2024.github.io/proceedings.html",
+        "https://arxiv.org/abs/2310.10108"
+      ],
+      "verified": "2026-11-17"
+    }
+  ],
+  "protocols": [
+    {
+      "id": "offline-self-training",
+      "title": "离线自训练与合成数据",
+      "question": "收益来自模型生成的有效新监督，还是额外训练、筛选或教师信号？",
+      "data": "固定版本的 Amazon Reviews 或 MovieLens；训练、验证、测试严格分离，合成与筛选仅使用允许的训练信息。",
+      "baselines": [
+        "冻结的初始模型（第 0 轮）",
+        "仅真实数据继续训练",
+        "等量随机增强或重采样",
+        "固定教师蒸馏",
+        "单轮生成与多轮闭环"
+      ],
+      "metrics": [
+        "预先确定的 Recall@K 与 NDCG@K",
+        "每轮相对第 0 轮的变化",
+        "覆盖率与长尾表现",
+        "训练时间、生成成本与总计算量"
+      ],
+      "controls": [
+        "使用相同 backbone、候选集合、负采样和调参预算",
+        "分别报告等更新步数与等计算预算对照",
+        "固定轮数和停止规则，测试集不得选择最佳轮次",
+        "至少 3 个独立随机种子，报告均值、离散程度与配对差异",
+        "消融合成、选择、过滤、教师刷新与真实数据混合比例",
+        "保留每轮数据校验值、模型 checkpoint 与运行配置"
+      ],
+      "risk": "自生成偏差可能被循环放大；多轮中挑最优测试分数会夸大提升。",
+      "status": "本站建议协议，尚无本站统一运行成绩"
+    },
+    {
+      "id": "continual-temporal",
+      "title": "持续学习与时间演化",
+      "question": "模型能否适应新的用户兴趣与物品，同时控制遗忘和更新成本？",
+      "data": "带时间戳的 KuaiRand、MIND 或 Amazon；采用按时间推进的训练窗口与未来测试窗口，逐窗口披露可用信息。",
+      "baselines": [
+        "静态模型",
+        "每个窗口从头重训",
+        "仅新窗口微调",
+        "历史回放",
+        "带蒸馏或记忆约束的增量更新"
+      ],
+      "metrics": [
+        "逐窗口 Recall@K / NDCG@K 或任务指定点击指标",
+        "新用户与新物品分组表现",
+        "历史任务性能变化",
+        "更新时间、峰值显存与存储开销"
+      ],
+      "controls": [
+        "先预测再更新，按时间记录训练数据可见范围",
+        "统一窗口长度、回放容量和更新频率",
+        "冻结预处理与物品可用时间，防止未来统计泄漏",
+        "同时报告全量重训与等预算基线",
+        "记录新旧物品候选池及冷启动处理方式"
+      ],
+      "risk": "随机切分和跨窗口使用未来信息会掩盖真实漂移；全量重训的资源优势必须单独报告。",
+      "status": "本站建议协议，尚无本站统一运行成绩"
+    },
+    {
+      "id": "interactive-policy",
+      "title": "交互反馈与策略改进",
+      "question": "利用交互反馈更新策略后，长期效用是否改善，且不由环境假设单独驱动？",
+      "data": "Open Bandit Dataset 用于单步离策略评估；KuaiRec / KuaiRand 配合明确的交互环境用于模拟实验，两种结果分开展示。",
+      "baselines": [
+        "随机或流行度策略",
+        "固定监督排序器",
+        "上下文 bandit",
+        "固定策略不更新",
+        "同交互预算的强化学习策略"
+      ],
+      "metrics": [
+        "累计奖励与平均单步奖励",
+        "会话长度或退出率（明确环境定义）",
+        "IPS / SNIPS / DR 估计及不确定性",
+        "覆盖率、多样性和用户分组差异",
+        "交互样本量与策略更新成本"
+      ],
+      "controls": [
+        "区分真实随机日志、离策略估计与模拟反馈",
+        "统一推荐是否可重复、会话终止规则与奖励定义",
+        "冻结训练环境，使用独立测试用户及多套环境参数",
+        "检查支持集覆盖、权重裁剪和有效样本量",
+        "不得把点击提升自动解释为满意度或长期价值提升"
+      ],
+      "risk": "策略可能利用模拟器漏洞；缺少支持集时离策略估计不能识别目标策略效果。",
+      "status": "本站建议协议，尚无本站统一运行成绩"
+    },
+    {
+      "id": "agent-feedback",
+      "title": "智能体反思与反馈记忆",
+      "question": "反思、记忆或规划更新是否改善后续推荐，还是仅增加调用次数和推理预算？",
+      "data": "ReDial 或带文本元数据的推荐数据；固定可检索物品库和用户信息，人工反馈、历史标签与 LLM 模拟反馈分别标注。",
+      "baselines": [
+        "相同基座模型的单次推荐",
+        "等调用次数但无反思",
+        "有记忆但无更新",
+        "随机或通用反思",
+        "独立的检索与排序基线"
+      ],
+      "metrics": [
+        "候选库内 Recall@K / NDCG@K",
+        "推荐实体有效率",
+        "按预注册量表的偏好一致性与任务成功率",
+        "每会话调用次数、token、费用与延迟",
+        "跨用户或跨领域迁移表现"
+      ],
+      "controls": [
+        "固定模型版本、提示词、温度、工具与候选池",
+        "隔离测试用户记忆，禁止把测试标签写回反思库",
+        "进行无反思、无记忆和等成本消融",
+        "若用 LLM 评价，披露评审模型并做独立人工抽检",
+        "将用户模拟器与被测推荐器分开，并改变模拟器检验稳健性",
+        "分别评估会话内适应与跨会话持续改进"
+      ],
+      "risk": "同一模型同时生成用户反馈、反思和评分会形成自我确认；对话流畅不等于推荐有效。",
+      "status": "本站建议协议，尚无本站统一运行成绩"
+    }
+  ]
+}
